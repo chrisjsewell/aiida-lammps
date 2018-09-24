@@ -17,14 +17,17 @@ def generate_LAMMPS_input(parameters_data,
                           structure_file='data.gan',
                           trajectory_file='trajectory.lammpstr'):
 
-    lammps_date = convert_date_string(parameters_data.get_dict().get("lammps_version", None))
+    lammps_date = convert_date_string(parameters_data.get_dict().get(
+        "lammps_version", None))
 
     names_str = ' '.join(potential_obj._names)
 
-    lammps_input_file = 'units           {0}\n'.format(potential_obj.default_units)
+    lammps_input_file = 'units           {0}\n'.format(
+        potential_obj.default_units)
     lammps_input_file += 'boundary        p p p\n'
     lammps_input_file += 'box tilt large\n'
-    lammps_input_file += 'atom_style      {0}\n'.format(potential_obj.atom_style)
+    lammps_input_file += 'atom_style      {0}\n'.format(
+        potential_obj.atom_style)
 
     lammps_input_file += 'read_data       {}\n'.format(structure_file)
 
@@ -32,7 +35,8 @@ def generate_LAMMPS_input(parameters_data,
 
     lammps_input_file += 'neighbor        0.3 bin\n'
     lammps_input_file += 'neigh_modify    every 1 delay 0 check no\n'
-    lammps_input_file += 'dump            aiida all custom 1 {0} element fx fy fz\n'.format(trajectory_file)
+    lammps_input_file += 'dump            aiida all custom 1 {0} element fx fy fz\n'.format(
+        trajectory_file)
 
     # TODO find exact version when changes were made
     if lammps_date <= convert_date_string('10 Feb 2015'):
@@ -59,7 +63,9 @@ class ForceCalculation(BaseLammpsCalculation, JobCalculation):
         self._default_parser = 'lammps.force'
         self.__retrieve_list = []
         self._generate_input_function = generate_LAMMPS_input
-        self._retrieve_list = [self._OUTPUT_TRAJECTORY_FILE_NAME, self._OUTPUT_FILE_NAME]
+        self._retrieve_list = [
+            self._OUTPUT_TRAJECTORY_FILE_NAME, self._OUTPUT_FILE_NAME
+        ]
         self._retrieve_temporary_list = [self._INPUT_UNITS]
 
     @classproperty

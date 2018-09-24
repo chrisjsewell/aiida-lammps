@@ -7,11 +7,12 @@ from aiida_phonopy.common.raw_parsers import get_FORCE_CONSTANTS_txt, get_poscar
 from aiida_lammps.calculations.lammps import BaseLammpsCalculation
 import numpy as np
 
-
 ArrayData = DataFactory('array')
 ParameterData = DataFactory('parameter')
 
-def generate_dynaphopy_input(parameters_object, poscar_name='POSCAR',
+
+def generate_dynaphopy_input(parameters_object,
+                             poscar_name='POSCAR',
                              force_constants_name='FORCE_CONSTANTS',
                              force_sets_filename='FORCE_SETS',
                              use_sets=False):
@@ -47,10 +48,12 @@ def generate_LAMMPS_input(parameters,
 
     names_str = ' '.join(potential_obj._names)
 
-    lammps_input_file = 'units           {0}\n'.format(potential_obj.default_units)
+    lammps_input_file = 'units           {0}\n'.format(
+        potential_obj.default_units)
     lammps_input_file += 'boundary        p p p\n'
     lammps_input_file += 'box tilt large\n'
-    lammps_input_file += 'atom_style      {0}\n'.format(potential_obj.atom_style)
+    lammps_input_file += 'atom_style      {0}\n'.format(
+        potential_obj.atom_style)
     lammps_input_file += 'read_data       {}\n'.format(structure_file)
 
     lammps_input_file += potential_obj.get_input_potential_lines()
@@ -58,10 +61,13 @@ def generate_LAMMPS_input(parameters,
     lammps_input_file += 'neighbor        0.3 bin\n'
     lammps_input_file += 'neigh_modify    every 1 delay 0 check no\n'
 
-    lammps_input_file += 'velocity        all create {0} {1} dist gaussian mom yes\n'.format(parameters.dict.temperature, random_number)
-    lammps_input_file += 'velocity        all scale {}\n'.format(parameters.dict.temperature)
+    lammps_input_file += 'velocity        all create {0} {1} dist gaussian mom yes\n'.format(
+        parameters.dict.temperature, random_number)
+    lammps_input_file += 'velocity        all scale {}\n'.format(
+        parameters.dict.temperature)
 
-    lammps_input_file += 'fix             int all nvt temp {0} {0} {1}\n'.format(parameters.dict.temperature, parameters.dict.thermostat_variable)
+    lammps_input_file += 'fix             int all nvt temp {0} {0} {1}\n'.format(
+        parameters.dict.temperature, parameters.dict.thermostat_variable)
 
     return lammps_input_file
 
@@ -77,13 +83,15 @@ class CombinateCalculation(BaseLammpsCalculation, JobCalculation):
     _OUTPUT_TRAJECTORY_FILE_NAME = None
     _OUTPUT_FILE_NAME = 'OUTPUT'
 
-
     def _init_internal_params(self):
         super(CombinateCalculation, self)._init_internal_params()
 
         self._default_parser = 'dynaphopy'
 
-        self._retrieve_list = [self._OUTPUT_QUASIPARTICLES, self._OUTPUT_FORCE_CONSTANTS, self._OUTPUT_FILE_NAME]
+        self._retrieve_list = [
+            self._OUTPUT_QUASIPARTICLES, self._OUTPUT_FORCE_CONSTANTS,
+            self._OUTPUT_FILE_NAME
+        ]
         self._generate_input_function = generate_LAMMPS_input
 
     @classproperty
@@ -95,29 +103,30 @@ class CombinateCalculation(BaseLammpsCalculation, JobCalculation):
         retdict.update(BaseLammpsCalculation._baseclass_use_methods)
 
         retdict['parameters_dynaphopy'] = {
-               'valid_types': ParameterData,
-               'additional_parameter': None,
-               'linkname': 'parameters_dynaphopy',
-               'docstring': ("Node that specifies the dynaphopy input data"),
+            'valid_types': ParameterData,
+            'additional_parameter': None,
+            'linkname': 'parameters_dynaphopy',
+            'docstring': ("Node that specifies the dynaphopy input data"),
         }
         retdict['force_constants'] = {
-               'valid_types': ArrayData,
-               'additional_parameter': None,
-               'linkname': 'force_constants',
-               'docstring': ("Node that specified the force constants"),
+            'valid_types': ArrayData,
+            'additional_parameter': None,
+            'linkname': 'force_constants',
+            'docstring': ("Node that specified the force constants"),
         }
         retdict['force_sets'] = {
-               'valid_types': ArrayData,
-               'additional_parameter': None,
-               'linkname': 'force_sets',
-               'docstring': ("Node that specified the force constants"),
+            'valid_types': ArrayData,
+            'additional_parameter': None,
+            'linkname': 'force_sets',
+            'docstring': ("Node that specified the force constants"),
         }
 
         return retdict
 
     def _create_additional_files(self, tempfolder, inputdict):
 
-        force_constants = inputdict.pop(self.get_linkname('force_constants'), None)
+        force_constants = inputdict.pop(
+            self.get_linkname('force_constants'), None)
         force_sets = inputdict.pop(self.get_linkname('force_sets'), None)
 
         cell_txt = get_poscar_txt(self._structure)
@@ -127,30 +136,38 @@ class CombinateCalculation(BaseLammpsCalculation, JobCalculation):
 
         if force_constants is not None:
             force_constants_txt = get_FORCE_CONSTANTS_txt(force_constants)
-            force_constants_filename = tempfolder.get_abs_path(self._INPUT_FORCE_CONSTANTS)
+            force_constants_filename = tempfolder.get_abs_path(
+                self._INPUT_FORCE_CONSTANTS)
             with open(force_constants_filename, 'w') as infile:
                 infile.write(force_constants_txt)
 
         elif force_sets is not None:
             force_sets_txt = get_FORCE_SETS_txt(force_sets)
-            force_sets_filename = tempfolder.get_abs_path(self._INPUT_FORCE_SETS)
+            force_sets_filename = tempfolder.get_abs_path(
+                self._INPUT_FORCE_SETS)
             with open(force_sets_filename, 'w') as infile:
                 infile.write(force_sets_txt)
         else:
-            raise InputValidationError("no force_sets nor force_constants are specified for this calculation")
+            raise InputValidationError(
+                "no force_sets nor force_constants are specified for this calculation"
+            )
 
         try:
-            parameters_data_dynaphopy = inputdict.pop(self.get_linkname('parameters_dynaphopy'))
+            parameters_data_dynaphopy = inputdict.pop(
+                self.get_linkname('parameters_dynaphopy'))
         except KeyError:
-            raise InputValidationError("No dynaphopy parameters specified for this calculation")
+            raise InputValidationError(
+                "No dynaphopy parameters specified for this calculation")
 
-        parameters_dynaphopy_txt = generate_dynaphopy_input(parameters_data_dynaphopy,
-                                                            poscar_name=self._POSCAR_NAME,
-                                                            force_constants_name=self._INPUT_FORCE_CONSTANTS,
-                                                            force_sets_filename=self._INPUT_FORCE_SETS,
-                                                            use_sets=force_sets is not None)
+        parameters_dynaphopy_txt = generate_dynaphopy_input(
+            parameters_data_dynaphopy,
+            poscar_name=self._POSCAR_NAME,
+            force_constants_name=self._INPUT_FORCE_CONSTANTS,
+            force_sets_filename=self._INPUT_FORCE_SETS,
+            use_sets=force_sets is not None)
 
-        dynaphopy_filename = tempfolder.get_abs_path(self._INPUT_FILE_NAME_DYNA)
+        dynaphopy_filename = tempfolder.get_abs_path(
+            self._INPUT_FILE_NAME_DYNA)
         with open(dynaphopy_filename, 'w') as infile:
             infile.write(parameters_dynaphopy_txt)
 
@@ -160,14 +177,29 @@ class CombinateCalculation(BaseLammpsCalculation, JobCalculation):
         equilibrium_time = self._parameters_data.dict.equilibrium_steps * time_step
         total_time = self._parameters_data.dict.total_steps * time_step
 
-        self._cmdline_params = [self._INPUT_FILE_NAME_DYNA,
-                                '--run_lammps', self._INPUT_FILE_NAME,
-                                '{}'.format(total_time), '{}'.format(time_step), '{}'.format(equilibrium_time),
-                                '--dim',
-                                '{}'.format(md_supercell[0]), '{}'.format(md_supercell[1]), '{}'.format(md_supercell[2]),
-                                '--silent', '-sfc', self._OUTPUT_FORCE_CONSTANTS, '-thm',  # '--resolution 0.01',
-                                '-psm','2', '--normalize_dos', '-sdata', '--velocity_only',
-                                '--temperature', '{}'.format(self._parameters_data.dict.temperature)]
+        self._cmdline_params = [
+            self._INPUT_FILE_NAME_DYNA,
+            '--run_lammps',
+            self._INPUT_FILE_NAME,
+            '{}'.format(total_time),
+            '{}'.format(time_step),
+            '{}'.format(equilibrium_time),
+            '--dim',
+            '{}'.format(md_supercell[0]),
+            '{}'.format(md_supercell[1]),
+            '{}'.format(md_supercell[2]),
+            '--silent',
+            '-sfc',
+            self._OUTPUT_FORCE_CONSTANTS,
+            '-thm',  # '--resolution 0.01',
+            '-psm',
+            '2',
+            '--normalize_dos',
+            '-sdata',
+            '--velocity_only',
+            '--temperature',
+            '{}'.format(self._parameters_data.dict.temperature)
+        ]
 
         if 'md_commensurate' in parameters_data_dynaphopy.get_dict():
             if parameters_data_dynaphopy.dict.md_commensurate:

@@ -4,13 +4,12 @@ from aiida.parsers.exceptions import OutputParsingError
 from aiida.orm import DataFactory
 
 from aiida_lammps import __version__ as aiida_lammps_version
-from aiida_lammps.common.raw_parsers import read_lammps_forces, read_log_file, get_units_dict
+from aiida_lammps.common.raw_parsers import read_lammps_forces, read_log_file
+from aiida_lammps.common.units import get_units_dict
 from aiida_lammps.utils import aiida_version, cmp_version
 
 ArrayData = DataFactory('array')
 ParameterData = DataFactory('parameter')
-
-
 
 
 class ForceParser(Parser):
@@ -56,8 +55,9 @@ class ForceParser(Parser):
             return successful, ()
 
         # Get file and do the parsing
-        outfile = out_folder.get_abs_path( self._calc._OUTPUT_FILE_NAME)
-        ouput_trajectory = out_folder.get_abs_path( self._calc._OUTPUT_TRAJECTORY_FILE_NAME)
+        outfile = out_folder.get_abs_path(self._calc._OUTPUT_FILE_NAME)
+        ouput_trajectory = out_folder.get_abs_path(
+            self._calc._OUTPUT_TRAJECTORY_FILE_NAME)
 
         outputa_data = read_log_file(outfile)
         forces = read_lammps_forces(ouput_trajectory)
@@ -85,7 +85,8 @@ class ForceParser(Parser):
         # add units used
         with open(get_temp_path(self._calc._INPUT_UNITS)) as f:
             units = f.readlines()[0].strip()
-        outputa_data.update(get_units_dict(units, ["energy", "force", "distance"]))
+        outputa_data.update(
+            get_units_dict(units, ["energy", "force", "distance"]))
 
         parameters_data = ParameterData(dict=outputa_data)
         new_nodes_list.append((self.get_linkname_outparams(), parameters_data))

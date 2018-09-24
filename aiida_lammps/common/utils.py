@@ -35,8 +35,10 @@ def join_keywords(dct, ignore=None):
     value can be a single value or a list/tuple of values
     """
     ignore = [] if not ignore else ignore
-    return " ".join(["{0} {1}".format(k, _convert_values(v)) for k, v in dct.items()
-                     if k not in ignore])
+    return " ".join([
+        "{0} {1}".format(k, _convert_values(v)) for k, v in dct.items()
+        if k not in ignore
+    ])
 
 
 def get_path(dct, path, default=None, raise_error=True):
@@ -45,7 +47,8 @@ def get_path(dct, path, default=None, raise_error=True):
     for i, key in enumerate(path):
         if not isinstance(subdct, dict) or key not in subdct:
             if raise_error:
-                raise KeyError("path does not exist in dct: {}".format(path[0:i+1]))
+                raise KeyError("path does not exist in dct: {}".format(
+                    path[0:i + 1]))
             else:
                 return default
         subdct = subdct[key]

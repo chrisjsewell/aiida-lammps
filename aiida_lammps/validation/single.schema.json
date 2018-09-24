@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "LAMMPS Optimize Run Parameters",
+  "type": "object",
+  "required": [
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "lammps_version": {
+      "description": "the version of lammps in date format, e.g 10 Nov 2015",
+      "type": "string"
+    },
+    "units": {
+      "description": "the unit system used",
+      "type": "string",
+      "enum": [
+        "real",
+        "nano",
+        "metal",
+        "electron",
+        "micro",
+        "si",
+        "cgs"
+      ]
+    }
+  }
+}

@@ -9,22 +9,22 @@ def get_trajectory_txt(trajectory):
     b = np.linalg.norm(cell[1])
     c = np.linalg.norm(cell[2])
 
-    alpha = np.arccos(np.dot(cell[1], cell[2])/(c*b))
-    gamma = np.arccos(np.dot(cell[1], cell[0])/(a*b))
-    beta = np.arccos(np.dot(cell[2], cell[0])/(a*c))
+    alpha = np.arccos(np.dot(cell[1], cell[2]) / (c * b))
+    gamma = np.arccos(np.dot(cell[1], cell[0]) / (a * b))
+    beta = np.arccos(np.dot(cell[2], cell[0]) / (a * c))
 
     xhi = a
     xy = b * np.cos(gamma)
     xz = c * np.cos(beta)
-    yhi = np.sqrt(pow(b,2)- pow(xy,2))
-    yz = (b*c*np.cos(alpha)-xy * xz)/yhi
-    zhi = np.sqrt(pow(c,2)-pow(xz,2)-pow(yz,2))
+    yhi = np.sqrt(pow(b, 2) - pow(xy, 2))
+    yz = (b * c * np.cos(alpha) - xy * xz) / yhi
+    zhi = np.sqrt(pow(c, 2) - pow(xz, 2) - pow(yz, 2))
 
-    xhi = xhi + max(0,0, xy, xz, xy+xz)
-    yhi = yhi + max(0,0, yz)
+    xhi = xhi + max(0, 0, xy, xz, xy + xz)
+    yhi = yhi + max(0, 0, yz)
 
-    xlo_bound = np.min([0.0, xy, xz, xy+xz])
-    xhi_bound = xhi + np.max([0.0, xy, xz, xy+xz])
+    xlo_bound = np.min([0.0, xy, xz, xy + xz])
+    xhi_bound = xhi + np.max([0.0, xy, xz, xy + xz])
     ylo_bound = np.min([0.0, yz])
     yhi_bound = yhi + np.max([0.0, yz])
     zlo_bound = 0
@@ -38,12 +38,16 @@ def get_trajectory_txt(trajectory):
         lammps_data_file += 'ITEM: NUMBER OF ATOMS\n'
         lammps_data_file += '{}\n'.format(len(position_step))
         lammps_data_file += 'ITEM: BOX BOUNDS xy xz yz pp pp pp\n'
-        lammps_data_file += '{0:20.10f} {1:20.10f} {2:20.10f}\n'.format(xlo_bound, xhi_bound, xy)
-        lammps_data_file += '{0:20.10f} {1:20.10f} {2:20.10f}\n'.format(ylo_bound, yhi_bound, xz)
-        lammps_data_file += '{0:20.10f} {1:20.10f} {2:20.10f}\n'.format(zlo_bound, zhi_bound, yz)
+        lammps_data_file += '{0:20.10f} {1:20.10f} {2:20.10f}\n'.format(
+            xlo_bound, xhi_bound, xy)
+        lammps_data_file += '{0:20.10f} {1:20.10f} {2:20.10f}\n'.format(
+            ylo_bound, yhi_bound, xz)
+        lammps_data_file += '{0:20.10f} {1:20.10f} {2:20.10f}\n'.format(
+            zlo_bound, zhi_bound, yz)
         lammps_data_file += ('ITEM: ATOMS x y z\n')
         for position in position_step:
-            lammps_data_file += '{0:20.10f} {1:20.10f} {2:20.10f}\n'.format(*position)
+            lammps_data_file += '{0:20.10f} {1:20.10f} {2:20.10f}\n'.format(
+                *position)
     return lammps_data_file
 
 

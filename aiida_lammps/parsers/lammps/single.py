@@ -4,7 +4,7 @@ from aiida.parsers.exceptions import OutputParsingError
 from aiida.orm import DataFactory
 
 from aiida_lammps import __version__ as aiida_lammps_version
-from aiida_lammps.common.raw_parsers import read_log_file2 as read_log_file, read_lammps_positions_and_forces
+from aiida_lammps.common.raw_parsers import read_log_file2 as read_log_file
 from aiida_lammps.common.units import get_units_dict
 from aiida_lammps.utils import aiida_version, cmp_version
 
@@ -13,7 +13,7 @@ ParameterData = DataFactory('parameter')
 StructureData = DataFactory('structure')
 
 
-class OptimizeParser(Parser):
+class SinglePointParser(Parser):
     """
     Simple Parser for LAMMPS.
     """
@@ -22,7 +22,7 @@ class OptimizeParser(Parser):
         """
         Initialize the instance of LammpsParser
         """
-        super(OptimizeParser, self).__init__(calc)
+        super(SinglePointParser, self).__init__(calc)
 
     def parse_with_retrieved(self, retrieved):
         """
@@ -57,13 +57,8 @@ class OptimizeParser(Parser):
 
         # Get file and do the parsing
         outfile = out_folder.get_abs_path(self._calc._OUTPUT_FILE_NAME)
-        ouput_trajectory = out_folder.get_abs_path(
-            self._calc._OUTPUT_TRAJECTORY_FILE_NAME)
 
         output_data, cell, stress_tensor = read_log_file(outfile)
-
-        positions, forces, symbols, cell2 = read_lammps_positions_and_forces(
-            ouput_trajectory)
 
         # look at warnings
         with open(out_folder.get_abs_path(self._calc._SCHED_ERROR_FILE)) as f:
@@ -74,18 +69,8 @@ class OptimizeParser(Parser):
         # save the outputs
         new_nodes_list = []
 
-        # save optimized structure into node
-        structure = StructureData(cell=cell)
-
-        for i, position in enumerate(positions[-1]):
-            structure.append_atom(
-                position=position.tolist(), symbols=symbols[i])
-
-        new_nodes_list.append(('output_structure', structure))
-
         # save forces into node
         array_data = ArrayData()
-        array_data.set_array('forces', forces)
         array_data.set_array('stress', stress_tensor)
 
         new_nodes_list.append(('output_array', array_data))

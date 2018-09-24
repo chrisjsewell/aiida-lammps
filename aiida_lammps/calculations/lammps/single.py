@@ -26,10 +26,6 @@ def generate_LAMMPS_input(parameters_data,
 
     lammps_input_file += potential_obj.get_input_potential_lines()
 
-    lammps_input_file += 'fix             int all box/relax {} {} {}\n'.format(
-        parameters['relax']['type'], parameters['relax']['pressure'],
-        join_keywords(parameters['relax'], ignore=['type', 'pressure']))
-
     # TODO find exact version when changes were made
     if lammps_date <= convert_date_string('11 Nov 2013'):
         lammps_input_file += 'compute         stpa all stress/atom\n'
@@ -41,30 +37,10 @@ def generate_LAMMPS_input(parameters_data,
     lammps_input_file += 'variable        pr equal -(c_stgb[1]+c_stgb[2]+c_stgb[3])/(3*vol)\n'
     lammps_input_file += 'thermo_style    custom step temp press v_pr etotal c_stgb[1] c_stgb[2] c_stgb[3] c_stgb[4] c_stgb[5] c_stgb[6]\n'
     lammps_input_file += 'thermo_modify   norm no\n'  # don't normalize extensive quantities by the number of atoms
-    # NB: `norm no` is the default for metal and real, but not for lj
+    # NB: norm no is the default for metal and real, but not for lj
 
-    lammps_input_file += 'dump            aiida all custom 1 {0} element x y z  fx fy fz\n'.format(
-        trajectory_file)
+    lammps_input_file += 'run 0\n'
 
-    # TODO find exact version when changes were made
-    if lammps_date <= convert_date_string('10 Feb 2015'):
-        lammps_input_file += 'dump_modify     aiida format "%4s  %16.10f %16.10f %16.10f  %16.10f %16.10f %16.10f"\n'
-    else:
-        lammps_input_file += 'dump_modify     aiida format line "%4s  %16.10f %16.10f %16.10f  %16.10f %16.10f %16.10f"\n'
-
-    lammps_input_file += 'dump_modify     aiida sort id\n'
-    lammps_input_file += 'dump_modify     aiida element {}\n'.format(names_str)
-    lammps_input_file += 'min_style       {}\n'.format(
-        parameters['minimize']['style'])
-    # lammps_input_file += 'min_style       cg\n'
-    lammps_input_file += 'minimize        {} {} {} {}\n'.format(
-        parameters['minimize']['energy_tolerance'],
-        parameters['minimize']['force_tolerance'],
-        parameters['minimize']['max_iterations'],
-        parameters['minimize']['max_evaluations'])
-    #  lammps_input_file += 'print           "$(xlo - xhi) $(xy) $(xz)"\n'
-    #  lammps_input_file += 'print           "0.000 $(yhi - ylo) $(yz)"\n'
-    #  lammps_input_file += 'print           "0.000 0.000   $(zhi-zlo)"\n'
     lammps_input_file += 'print           "$(xlo) $(xhi) $(xy)"\n'
     lammps_input_file += 'print           "$(ylo) $(yhi) $(xz)"\n'
     lammps_input_file += 'print           "$(zlo) $(zhi) $(yz)"\n'
@@ -72,19 +48,17 @@ def generate_LAMMPS_input(parameters_data,
     return lammps_input_file
 
 
-class OptimizeCalculation(BaseLammpsCalculation, JobCalculation):
+class SinglePointCalculation(BaseLammpsCalculation, JobCalculation):
 
-    _OUTPUT_TRAJECTORY_FILE_NAME = 'path.lammpstrj'
     _OUTPUT_FILE_NAME = 'log.lammps'
+    _OUTPUT_TRAJECTORY_FILE_NAME = 'path.lammpstrj'
 
     def _init_internal_params(self):
-        super(OptimizeCalculation, self)._init_internal_params()
+        super(SinglePointCalculation, self)._init_internal_params()
 
-        self._default_parser = 'lammps.optimize'
+        self._default_parser = 'lammps.single'
 
-        self._retrieve_list = [
-            self._OUTPUT_TRAJECTORY_FILE_NAME, self._OUTPUT_FILE_NAME
-        ]
+        self._retrieve_list = [self._OUTPUT_FILE_NAME]
         self._retrieve_temporary_list = [self._INPUT_UNITS]
         self._generate_input_function = generate_LAMMPS_input
 
@@ -101,15 +75,15 @@ class OptimizeCalculation(BaseLammpsCalculation, JobCalculation):
     def validate_parameters(self, param_data, potential_object):
         if param_data is None:
             raise InputValidationError("parameter data not set")
-        validate_with_json(param_data.get_dict(), "optimize")
+        validate_with_json(param_data.get_dict(), "single")
 
         # ensure the potential and paramters are in the same unit systems
         # TODO convert between unit systems (e.g. using https://pint.readthedocs.io)
-        punits = param_data.get_dict()['units']
-        if not punits == potential_object.default_units:
-            raise InputValidationError(
-                'the units of the parameters ({}) and potential ({}) are different'.
-                format(punits, potential_object.default_units))
+        # punits = param_data.get_dict()['units']
+        # if not punits == potential_object.default_units:
+        #     raise InputValidationError('the units of the parameters ({}) and potential ({}) are different'.format(
+        #         punits, potential_object.default_units
+        #     ))
 
         return True
 

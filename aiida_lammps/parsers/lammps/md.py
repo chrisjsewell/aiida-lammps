@@ -4,7 +4,8 @@ from aiida.parsers.exceptions import OutputParsingError
 from aiida.orm import DataFactory
 
 from aiida_lammps import __version__ as aiida_lammps_version
-from aiida_lammps.common.raw_parsers import read_lammps_trajectory, get_units_dict
+from aiida_lammps.common.raw_parsers import read_lammps_trajectory
+from aiida_lammps.common.units import get_units_dict
 from aiida_lammps.utils import aiida_version, cmp_version
 
 ArrayData = DataFactory('array')
@@ -56,10 +57,12 @@ class MdParser(Parser):
 
         # Get file and do the parsing
         outfile = out_folder.get_abs_path(self._calc._OUTPUT_FILE_NAME)
-        output_trajectory = get_temp_path(self._calc._OUTPUT_TRAJECTORY_FILE_NAME)
+        output_trajectory = get_temp_path(
+            self._calc._OUTPUT_TRAJECTORY_FILE_NAME)
 
         timestep = self._calc.inp.parameters.dict.timestep
-        positions, step_ids, cells, symbols, time = read_lammps_trajectory(output_trajectory, timestep=timestep)
+        positions, step_ids, cells, symbols, time = read_lammps_trajectory(
+            output_trajectory, timestep=timestep)
 
         # look at warnings
         with open(out_folder.get_abs_path(self._calc._SCHED_ERROR_FILE)) as f:
@@ -73,15 +76,18 @@ class MdParser(Parser):
         # save trajectory into node
         try:
             trajectory_data = TrajectoryData()
-            trajectory_data.set_trajectory(step_ids, cells, symbols, positions, times=time)
+            trajectory_data.set_trajectory(
+                step_ids, cells, symbols, positions, times=time)
             new_nodes_list.append(('trajectory_data', trajectory_data))
-        except KeyError: # keys not found in json
+        except KeyError:  # keys not found in json
             pass
 
         # add the dictionary with warnings
-        param_dict = {'warnings': warnings,
-                      "parser_class": self.__class__.__name__,
-                      "parser_version": aiida_lammps_version}
+        param_dict = {
+            'warnings': warnings,
+            "parser_class": self.__class__.__name__,
+            "parser_version": aiida_lammps_version
+        }
 
         # add units used
         with open(get_temp_path(self._calc._INPUT_UNITS)) as f:
@@ -90,7 +96,7 @@ class MdParser(Parser):
 
         # TODO return energies per step
 
-        new_nodes_list.append((self.get_linkname_outparams(), ParameterData(dict=param_dict)))
+        new_nodes_list.append((self.get_linkname_outparams(),
+                               ParameterData(dict=param_dict)))
 
         return successful, new_nodes_list
-

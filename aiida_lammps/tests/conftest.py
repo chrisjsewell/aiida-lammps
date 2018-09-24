@@ -66,4 +66,3 @@ def new_database_with_daemon(aiida_profile):
     else:
         yield aiida_profile
         aiida_profile.reset_db()
-

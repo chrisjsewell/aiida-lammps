@@ -9,8 +9,6 @@ from aiida_phonopy.common.raw_parsers import parse_FORCE_CONSTANTS
 import numpy as np
 
 
-
-
 class DynaphopyParser(Parser):
     """
     Simple Parser for LAMMPS.
@@ -48,8 +46,9 @@ class DynaphopyParser(Parser):
         #    return successful, ()
 
         # Get file and do the parsing
-        outfile = out_folder.get_abs_path( self._calc._OUTPUT_FILE_NAME)
-        force_constants_file = out_folder.get_abs_path(self._calc._OUTPUT_FORCE_CONSTANTS)
+        outfile = out_folder.get_abs_path(self._calc._OUTPUT_FILE_NAME)
+        force_constants_file = out_folder.get_abs_path(
+            self._calc._OUTPUT_FORCE_CONSTANTS)
         qp_file = out_folder.get_abs_path(self._calc._OUTPUT_QUASIPARTICLES)
 
         try:
@@ -65,7 +64,7 @@ class DynaphopyParser(Parser):
 
         # look at warnings
         warnings = []
-        with open(out_folder.get_abs_path( self._calc._SCHED_ERROR_FILE )) as f:
+        with open(out_folder.get_abs_path(self._calc._SCHED_ERROR_FILE)) as f:
             errors = f.read()
         if errors:
             warnings = [errors]
@@ -77,12 +76,14 @@ class DynaphopyParser(Parser):
 
         # save phonon data into node
         try:
-            new_nodes_list.append(('quasiparticle_data', ParameterData(dict=quasiparticle_data)))
+            new_nodes_list.append(('quasiparticle_data',
+                                   ParameterData(dict=quasiparticle_data)))
         except KeyError:  # keys not
             pass
 
         try:
-            new_nodes_list.append(('thermal_properties', ParameterData(dict=thermal_properties)))
+            new_nodes_list.append(('thermal_properties',
+                                   ParameterData(dict=thermal_properties)))
         except KeyError:  # keys not
             pass
 
@@ -91,8 +92,8 @@ class DynaphopyParser(Parser):
         except KeyError:  # keys not
             pass
 
-
         # add the dictionary with warnings
-        new_nodes_list.append((self.get_linkname_outparams(), ParameterData(dict={'warnings': warnings})))
+        new_nodes_list.append((self.get_linkname_outparams(),
+                               ParameterData(dict={'warnings': warnings})))
 
         return successful, new_nodes_list
