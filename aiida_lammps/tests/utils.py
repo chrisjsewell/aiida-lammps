@@ -34,23 +34,27 @@ def get_computer(name=TEST_COMPUTER, workdir=None, configure=False):
     :return: The computer node
     :rtype: :py:class:`aiida.orm.Computer`
     """
-    from aiida.orm import Computer
     from aiida.common.exceptions import NotExistent
 
+    if aiida_version() >= cmp_version("1.0.0a2"):
+        from aiida.orm.backend import construct_backend
+        backend = construct_backend()
+        get_computer = lambda name: backend.computers.get(name=name)
+        create_computer = backend.computers.create
+    else:
+        from aiida.orm import Computer
+        get_computer = Computer.get
+        create_computer = Computer
+
     try:
-        if aiida_version() >= cmp_version("1.0.0a2"):
-            from aiida.orm.backend import construct_backend
-            backend = construct_backend()
-            computer = backend.computers.get(name=name)
-        else:
-            computer = Computer.get(name)
+        computer = get_computer(name)
     except NotExistent:
 
         if workdir is None:
             raise ValueError(
                 "to create a new computer, a work directory must be supplied")
 
-        computer = Computer(
+        computer = create_computer(
             name=name,
             description='localhost computer set up by aiida_lammps tests',
             hostname=name,
