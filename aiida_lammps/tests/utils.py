@@ -38,7 +38,12 @@ def get_computer(name=TEST_COMPUTER, workdir=None, configure=False):
     from aiida.common.exceptions import NotExistent
 
     try:
-        computer = Computer.get(name)
+        if aiida_version() >= cmp_version("1.0.0a2"):
+            from aiida.orm.backend import construct_backend
+            backend = construct_backend()
+            computer = backend.computers.get(name=name)
+        else:
+            computer = Computer.get(name)
     except NotExistent:
 
         if workdir is None:
