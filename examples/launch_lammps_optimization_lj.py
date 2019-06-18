@@ -1,11 +1,11 @@
+import numpy as np
+from aiida_lammps.data.potential import EmpiricalPotential
+from aiida.common.extendeddicts import AttributeDict
+from aiida.engine import run_get_node
+from aiida.orm import Code, Dict, StructureData
+from aiida.plugins import CalculationFactory
 from aiida import load_dbenv
 load_dbenv()
-from aiida.plugins import CalculationFactory
-from aiida.orm import Code, Dict, StructureData
-from aiida.engine import submit, run_get_node
-from aiida.common.extendeddicts import AttributeDict
-from aiida_lammps.data.potential import EmpiricalPotential
-import numpy as np
 
 
 codename = 'lammps_optimize@stern'
@@ -14,13 +14,13 @@ codename = 'lammps_optimize@stern'
 #  Define input parameters #
 ############################
 
-cell = [[ 3.987594, 0.000000, 0.000000],
+cell = [[3.987594, 0.000000, 0.000000],
         [-1.993797, 3.453358, 0.000000],
-        [ 0.000000, 0.000000, 6.538394]]
+        [0.000000, 0.000000, 6.538394]]
 
-symbols=['Ar'] * 2
-scaled_positions = [(0.33333,  0.66666,  0.25000),
-                    (0.66667,  0.33333,  0.75000)]
+symbols = ['Ar'] * 2
+scaled_positions = [(0.33333, 0.66666, 0.25000),
+                    (0.66667, 0.33333, 0.75000)]
 
 structure = StructureData(cell=cell)
 positions = np.dot(scaled_positions, cell)
@@ -32,12 +32,12 @@ for i, scaled_position in enumerate(scaled_positions):
 structure.store()
 
 # Example LJ parameters for Argon. These may not be accurate at all
-potential ={'pair_style': 'lennard_jones',
-            #                 epsilon,  sigma, cutoff
-            'data': {'1  1':  '0.01029   3.4    2.5',
-                     #'2  2':   '1.0      1.0    2.5',
-                     #'1  2':   '1.0      1.0    2.5'
-                     }}
+potential = {'pair_style': 'lennard_jones',
+             #                 epsilon,  sigma, cutoff
+             'data': {'1  1': '0.01029   3.4    2.5',
+                      # '2  2':   '1.0      1.0    2.5',
+                      # '1  2':   '1.0      1.0    2.5'
+                      }}
 
 lammps_machine = {
     'num_machines': 1,
@@ -71,7 +71,7 @@ options.account = ''
 options.qos = ''
 options.resources = {'num_machines': 1, 'num_mpiprocs_per_machine': 1,
                      'parallel_env': 'localmpi', 'tot_num_mpiprocs': 1}
-#options.queue_name = 'iqtc04.q'
+# options.queue_name = 'iqtc04.q'
 options.max_wallclock_seconds = 3600
 inputs.metadata.options = options
 
@@ -82,7 +82,7 @@ inputs.code = Code.get_from_string(codename)
 inputs.structure = structure
 inputs.potential = EmpiricalPotential(structure=structure,
                                       type='lennard_jones',
-                                      data={'1  1':  '0.01029   3.4    2.5'})
+                                      data={'1  1': '0.01029   3.4    2.5'})
 
 inputs.parameters = Dict(dict=parameters_opt)
 
@@ -92,4 +92,4 @@ print('results:', result)
 print('node:', node)
 
 # submit to deamon
-#submit(LammpsOptimizeCalculation, **inputs)
+# submit(LammpsOptimizeCalculation, **inputs)

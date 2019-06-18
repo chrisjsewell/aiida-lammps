@@ -45,7 +45,8 @@ def get_path(dct, path, default=None, raise_error=True):
     for i, key in enumerate(path):
         if not isinstance(subdct, dict) or key not in subdct:
             if raise_error:
-                raise KeyError("path does not exist in dct: {}".format(path[0:i+1]))
+                raise KeyError(
+                    "path does not exist in dct: {}".format(path[0:i + 1]))
             else:
                 return default
         subdct = subdct[key]

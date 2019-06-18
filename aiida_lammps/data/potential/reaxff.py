@@ -2,7 +2,7 @@ from aiida_lammps.common.reaxff_convert import write_lammps
 from aiida_lammps.validation import validate_with_json
 
 
-def generate_LAMMPS_potential(data):
+def generate_lammps_potential(data):
 
     if 'file_contents' in data:
         potential_file = ''

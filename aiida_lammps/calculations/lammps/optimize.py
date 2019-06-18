@@ -6,7 +6,7 @@ from aiida.plugins import DataFactory
 import six
 
 
-def generate_LAMMPS_input(calc,
+def generate_lammps_input(calc,
                           parameters_data,
                           potential_obj,
                           structure_file='data.gan',
@@ -19,7 +19,7 @@ def generate_LAMMPS_input(calc,
 
     # lammps_date = convert_date_string(parameters.get("lammps_version", None))
 
-    lammps_input_file =  'units          {0}\n'.format(potential_obj.default_units)
+    lammps_input_file = 'units          {0}\n'.format(potential_obj.default_units)
     lammps_input_file += 'boundary        p p p\n'
     lammps_input_file += 'box tilt large\n'
     lammps_input_file += 'atom_style      {0}\n'.format(potential_obj.atom_style)
@@ -71,7 +71,7 @@ def generate_LAMMPS_input(calc,
 
 class OptimizeCalculation(BaseLammpsCalculation):
     _OUTPUT_TRAJECTORY_FILE_NAME = 'path.lammpstrj'
-    _generate_input_function = generate_LAMMPS_input
+    _generate_input_function = generate_lammps_input
 
     @classmethod
     def define(cls, spec):

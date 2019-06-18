@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def generate_LAMMPS_potential(data):
+def generate_lammps_potential(data):
     return None
 
 

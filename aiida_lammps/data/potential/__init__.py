@@ -58,7 +58,7 @@ class EmpiricalPotential(Data):
         default_units = module.DEFAULT_UNITS
 
         data = {} if data is None else data
-        pot_contents = module.generate_LAMMPS_potential(data)
+        pot_contents = module.generate_lammps_potential(data)
         pot_lines = module.get_input_potential_lines(
             data, names=self.kind_names, potential_filename=self.potential_filename)
 
